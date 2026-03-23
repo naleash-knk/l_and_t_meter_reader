@@ -9,7 +9,7 @@ The system delivers a single operational interface for field and internal teams 
 
 ## Demo Video
 
-[![L&T Meter Reader Demo](https://drive.google.com/thumbnail?id=1C6ypkAU7w_pE56US8pmYpQTNiVuYJ9r0&sz=w1280)](https://drive.google.com/uc?export=preview&id=1C6ypkAU7w_pE56US8pmYpQTNiVuYJ9r0)
+[![L&T Meter Reader Demo](https://drive.google.com/thumbnail?id=1C6ypkAU7w_pE56US8pmYpQTNiVuYJ9r0&sz=w1280)](https://drive.google.com/file/d/1C6ypkAU7w_pE56US8pmYpQTNiVuYJ9r0/view?usp=sharing)
 
 ## Problem Statement
 
