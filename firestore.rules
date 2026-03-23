@@ -1,0 +1,160 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Client writes an email request; backend function updates status.
+    match /mail_requests/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.to is string
+        && (
+          (request.resource.data.storagePath is string
+            && request.resource.data.filename is string)
+          || request.resource.data.attachments is list
+        )
+        && request.resource.data.subject is string
+        && request.resource.data.body is string
+        && request.resource.data.status == 'queued';
+
+      // Client can read their own requests.
+      allow get, list: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+
+      // Client cannot update/delete; only admin (Cloud Functions) can.
+      allow update, delete: if false;
+    }
+
+    // Report data shown in app.
+    match /compressor_readings/{id} {
+      allow read: if request.auth != null;
+      allow delete: if request.auth != null;
+
+      // Allow clients to create a reading.
+      // Keep update locked down so existing entries can't be edited from client.
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data['User Entry'] is string
+        && request.resource.data['Date'] is string
+        && request.resource.data['Time'] is string
+        && (
+          !('COMP-1 Running HRS' in request.resource.data)
+            || request.resource.data['COMP-1 Running HRS'] is number
+        )
+        && (
+          !('COMP-1 KWH' in request.resource.data)
+            || request.resource.data['COMP-1 KWH'] is number
+        )
+        && (
+          !('COMP-2 Running HRS' in request.resource.data)
+            || request.resource.data['COMP-2 Running HRS'] is number
+        )
+        && (
+          !('COMP-2 KWH' in request.resource.data)
+            || request.resource.data['COMP-2 KWH'] is number
+        );
+      allow update: if false;
+    }
+
+    match /water_meter_readings/{id} {
+      allow read: if request.auth != null;
+      allow delete: if request.auth != null;
+
+      // Allow clients to create a reading.
+      // Keep update locked down so existing entries can't be edited from client.
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data['User Entry'] is string
+        && request.resource.data['Date'] is string
+        && request.resource.data['Time'] is string
+        && (
+          !('BOREWELL' in request.resource.data) || request.resource.data.BOREWELL is number
+        )
+        && (
+          !('OUTLET' in request.resource.data) || request.resource.data.OUTLET is number
+        )
+        && (
+          !('STPINLET' in request.resource.data) || request.resource.data.STPINLET is number
+        )
+        && (
+          !('STPOUTLET' in request.resource.data) || request.resource.data.STPOUTLET is number
+        )
+        && (
+          !('ETPINLET' in request.resource.data) || request.resource.data.ETPINLET is number
+        )
+        && (
+          !('ETPOUTLET' in request.resource.data) || request.resource.data.ETPOUTLET is number
+        );
+      allow update: if false;
+    }
+
+    match /solar_panel_readings/{id} {
+      allow read: if request.auth != null;
+      allow delete: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data['User Entry'] is string
+        && request.resource.data['Date'] is string
+        && request.resource.data['Time'] is string
+        && (
+          !('SOLAR-1 Running HRS' in request.resource.data)
+            || request.resource.data['SOLAR-1 Running HRS'] is number
+        )
+        && (
+          !('SOLAR-1 KWH' in request.resource.data)
+            || request.resource.data['SOLAR-1 KWH'] is number
+        );
+      allow update: if false;
+    }
+
+    match /solar_panel_readings/{id} {
+      allow read: if request.auth != null;
+      allow delete: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data['User Entry'] is string
+        && request.resource.data['Date'] is string
+        && request.resource.data['Time'] is string
+        && (
+          !('SOLAR-1 Running HRS' in request.resource.data)
+            || request.resource.data['SOLAR-1 Running HRS'] is number
+        )
+        && (
+          !('SOLAR-1 KWH' in request.resource.data)
+            || request.resource.data['SOLAR-1 KWH'] is number
+        );
+      allow update: if false;
+    }
+
+    // User profiles.
+    // NOTE: This allows any signed-in user to list/read basic user docs,
+    // which is required for "View created accounts" in the app.
+    match /users/{uid} {
+      allow get, list: if request.auth != null;
+
+      // Allow user to create/update their own profile only.
+      allow create, update: if request.auth != null && request.auth.uid == uid;
+
+      // Keep deletes locked down.
+      allow delete: if false;
+    }
+
+    match /activity_logs/{id} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.type is string
+        && request.resource.data.title is string
+        && request.resource.data.actorName is string
+        && request.resource.data.clientCreatedAt is string;
+      allow update, delete: if false;
+    }
+
+    // Keep existing collections locked down; adjust if you need client access.
+  }
+}
